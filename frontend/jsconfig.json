@@ -5,8 +5,8 @@
     "baseUrl": "./",
     "moduleResolution": "node",
     "paths": {
-      "@/*": [
-        "src/*"
+      "@/*": [ // 절대경로 지정
+        "./src/*"
       ]
     },
     "lib": [
