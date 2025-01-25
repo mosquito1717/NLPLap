@@ -38,8 +38,9 @@ def upload_data():
     with open(file_path, "r", encoding=encoding) as f:
         data = f.read().strip()
 
-    # Split the content by lines
+    # Split the content by lines(하루 단위=엔터 단위)
     lines = data.splitlines()
+    # 하루 단위로 데이터를 나누는게 아니라, 시간대 별로 데이터를 나눠야지
 
     # Save the processed data into the file
     with open(processed_file, "w", encoding="utf-8") as output_file:
@@ -86,6 +87,7 @@ def search_data():
     # Generate response
     if not unique_results:
         return jsonify({"message": "No search results found."})
+    print(f"Number of search results: {len(unique_results)}")
     return jsonify({"results": [{"content": k, "metadata": v} for k, v in unique_results.items()]})
 
 if __name__ == '__main__':

@@ -5,14 +5,23 @@
     <button @click="searchData">Search</button>
 
     <h2>Results</h2>
-    <div v-if="results.length">
+    <p v-if="results.length">Total Results: {{ results.length }}</p>
+    <div v-if="results.length" class="results-container">
       <div v-for="(result, index) in results" :key="index">
-        <p>{{ result.content }}</p>
+        <p @click="viewDetail(result)" class="clickable">{{ result.content }}</p>
         <hr>
       </div>
     </div>
     <div v-else>
       <p>No results found.</p>
+    </div>
+
+    <div v-if="selectedResult" class="modal">
+      <div class="modal-content">
+        <h3>Document Details</h3>
+        <p>{{ selectedResult.content }}</p>
+        <button @click="closeDetail">Close</button>
+      </div>
     </div>
   </div>
 </template>
@@ -24,7 +33,8 @@ export default {
   data() {
     return {
       searchQuery: '',
-      results: []
+      results: [],
+      selectedResult: null
     };
   },
   methods: {
@@ -39,6 +49,12 @@ export default {
       } catch (error) {
         alert('Search failed.');
       }
+    },
+    viewDetail(result) {
+      this.selectedResult = result;
+    },
+    closeDetail() {
+      this.selectedResult = null;
     }
   }
 }
@@ -47,5 +63,35 @@ export default {
 <style scoped>
 input, button {
   margin: 5px;
+}
+.clickable {
+  cursor: pointer;
+  color: blue;
+  text-decoration: underline;
+}
+.results-container {
+  max-height: 400px; /* 결과 목록의 최대 높이 */
+  overflow-y: auto;  /* 세로 스크롤 가능 */
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+  background: #f9f9f9;
+}
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
 }
 </style>
