@@ -38,18 +38,33 @@ def upload_data():
     with open(file_path, "r", encoding=encoding) as f:
         data = f.read().strip()
 
-    # Split the content by lines(하루 단위=엔터 단위)
-    lines = data.splitlines()
-    # 하루 단위로 데이터를 나누는게 아니라, 시간대 별로 데이터를 나눠야지
+    import re
+    # 시간 정규식
+    time_pattern = re.compile(r'\[(\d{2}:\d{2})\]')
+
+    # 결과 저장용 딕셔너리
+    time_based_data = {}
+
+    # 시간 태그로 데이터 분리
+    segments = time_pattern.split(data)
+
+    for i in range(1, len(segments), 2):
+        time = segments[i]  # [hh:mm] 시간 값
+        text = segments[i + 1].strip('"; ')  # 텍스트 정리 (앞뒤 불필요한 문자 제거)
+
+        if time in time_based_data:
+            time_based_data[time].append(text)
+        else:
+            time_based_data[time] = [text]
 
     # Save the processed data into the file
     with open(processed_file, "w", encoding="utf-8") as output_file:
-        for line in lines:
-            if line.strip():
-                output_file.write(line.strip() + "\n")
+        for time, texts in time_based_data.items():
+            output_file.write(f"[{time}] " + " ".join(texts) + "\n")
 
     # Create Document objects
-    documents = [Document(page_content=line.strip(), metadata={}) for line in lines if line.strip()]
+    documents = [Document(page_content=text.strip(), metadata={"time": time}) 
+                 for time, texts in time_based_data.items() for text in texts if text.strip()]
 
     # Create the Chroma vector store (specifying the database directory)
     vectorstore = Chroma.from_documents(
