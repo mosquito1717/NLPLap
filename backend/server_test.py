@@ -88,22 +88,40 @@ def search_data():
 
     print(f"Received query: {query_text}")  # Print query value (for debugging)
 
-    # Create query embedding and perform search
+    # 쿼리 텍스트를 임베딩 변환
     query_embedding = embeddings.embed_query(query_text)
-    results = vectorstore.similarity_search_by_vector(embedding=query_embedding, k=5)
 
-    # Filter search results
-    unique_results = {}
-    for result in results:
+    # 벡터 기반 유사도 검색 (유사한 상위 5개 문서 검색)
+    search_results = vectorstore.similarity_search_by_vector(embedding=query_embedding, k=5)
+
+    # 결과 처리 (타임스탬프 단위로 그룹화)
+    grouped_results = {}
+    for result in search_results:
         content = result.page_content.strip()
-        if content not in unique_results and content:
-            unique_results[content] = result.metadata
+        metadata = result.metadata
 
-    # Generate response
-    if not unique_results:
+        time = metadata.get("time", "Unknown Time")  # 메타데이터에서 시간 추출
+        if time not in grouped_results:
+            grouped_results[time] = []
+        
+        grouped_results[time].append(content)
+
+    # 중복 제거 및 응답 생성
+    response_data = []
+    for time, texts in grouped_results.items():
+        combined_text = " ".join(texts)  # 동일 타임스탬프의 내용을 결합
+        list(set(combined_text))
+        response_data.append({
+            "timestamp": time,
+            "content": combined_text
+        })
+
+    # 검색 결과가 없을 경우 처리
+    if not response_data:
         return jsonify({"message": "No search results found."})
-    print(f"Number of search results: {len(unique_results)}")
-    return jsonify({"results": [{"content": k, "metadata": v} for k, v in unique_results.items()]})
+    
+    print(f"Number of search results: {len(response_data)}")
+    return jsonify({"results": response_data})
 
 if __name__ == '__main__':
     if not os.path.exists(db_dir):
